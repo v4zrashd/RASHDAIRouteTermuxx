@@ -10,14 +10,19 @@ if ! command -v python >/dev/null 2>&1 && ! command -v python3 >/dev/null 2>&1; 
   pkg install -y python
 fi
 
-DIR="$(cd "$(dirname "$0")" && pwd)"
-if [ ! -f "$DIR/v4zroute.py" ]; then
-  echo "[!] v4zroute.py not found next to install.sh."
-  echo "    Extract the whole package first, then run install.sh from inside it."
-  exit 1
+RAW="https://raw.githubusercontent.com/v4zrashd/RASHDAIRouteTermuxx/main"
+DIR="$(cd "$(dirname "$0" 2>/dev/null)" 2>/dev/null && pwd || echo "")"
+SRC=""
+if [ -n "$DIR" ] && [ -f "$DIR/v4zroute.py" ]; then
+  SRC="$DIR/v4zroute.py"
+else
+  echo "[*] Downloading v4zroute.py..."
+  TMPD="$(mktemp -d)"
+  curl -fsSL "$RAW/v4zroute.py" -o "$TMPD/v4zroute.py"
+  SRC="$TMPD/v4zroute.py"
 fi
 
-cp "$DIR/v4zroute.py" "$PREFIX/bin/v4zroute"
+cp "$SRC" "$PREFIX/bin/v4zroute"
 chmod +x "$PREFIX/bin/v4zroute"
 mkdir -p "$HOME/.v4zroute"
 
