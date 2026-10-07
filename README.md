@@ -4,6 +4,8 @@ A small **local AI gateway** for Termux. It exposes one OpenAI-compatible endpoi
 
 Built by **V4Z RASHD** — Telegram: [@rashdteem](https://t.me/rashdteem)
 
+**Version:** 1.1
+
 > Honest scope: this tool is a routing/fallback layer, not a source of free AI. You bring your own provider accounts, base URLs and API keys.
 
 ## Install (Termux)
@@ -37,12 +39,16 @@ nano ~/.v4zroute/config.json
       "enabled": true
     }
   ],
-  "aliases": {}
+  "aliases": {},
+  "combos": {
+    "best": ["myprovider/model-name-here"]
+  }
 }
 ```
 
 - Add one entry per provider you have an account with. Entries still containing `example.com` or the placeholder key are skipped automatically.
 - `gateway_key` (optional): if set, clients must send `Authorization: Bearer <gateway_key>` to the gateway itself.
+- `combos` (optional): named ordered chains like `"best": ["provA/model-x", "provB/model-y"]`. Requesting the combo name tries each entry in order, with the same automatic fallback as `auto`.
 - Keep this file on your phone only — it holds your keys. Never upload it.
 
 ## Commands
@@ -50,8 +56,9 @@ nano ~/.v4zroute/config.json
 | Command | What it does |
 |---|---|
 | `v4zroute serve` | Run the gateway (`--host` / `--port` to override config) |
-| `v4zroute providers` | Show configured providers (API keys masked) |
+| `v4zroute providers` | Show configured providers, combos and aliases (API keys masked) |
 | `v4zroute test` | Validate config and ping each provider's `/models` |
+| `v4zroute update` | Download the latest v4zroute from GitHub (`--dry-run` only reports) |
 
 ## Using the gateway
 
@@ -70,13 +77,14 @@ and use one of these model names:
 | Model name | Meaning |
 |---|---|
 | `auto` | First working provider, with automatic fallback |
+| any combo from config `combos` | Your ordered chain, e.g. `"best": ["provA/model-x", "provB/model-y"]` |
 | `<provider>/<model>` | A specific provider, e.g. `myprovider/model-name-here` |
 | `<model>` | Whichever provider lists that model |
 | any alias from config `aliases` | Your own shortcut, e.g. `"fast": "myprovider/model-name-here"` |
 
 Fallback: if the chosen provider times out, refuses the connection, or answers with an HTTP error, the request is retried on the next provider in the chain. If every provider fails, the gateway returns a `502` with the per-provider reasons (provider names only — keys are never printed).
 
-Also available: `GET /health` and `GET /v1/models`.
+Also available: `GET /health`, `GET /v1/models`, and a small dark dashboard at `GET /` — open `http://127.0.0.1:8787/` in a browser to see gateway status and your configured providers (keys always masked; if `gateway_key` is set, the page asks for it like the other endpoints).
 
 Streaming (`"stream": true`) is relayed through as-is.
 
@@ -95,3 +103,7 @@ Streaming (`"stream": true`) is relayed through as-is.
 ---
 
 © V4Z RASHD — [@rashdteem](https://t.me/rashdteem)
+
+## Credits
+
+The concept benchmark for this tool is OmniRoute (diegosouzapw) and W8SOJIB's Termux port of it (MIT). V4Z AI Route is an original implementation written from scratch for V4Z RASHD (https://t.me/rashdteem) — no code from those projects is included.
